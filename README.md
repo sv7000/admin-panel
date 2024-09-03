@@ -20,7 +20,7 @@ This project is an admin panel. It includes a login page, registration page, mul
 - **Backend**: Xano
 - **State Management**: Redux
 - **Deployment**: 
-  - Frontend: [Vercel](https://vercel.com/) 
+  - Frontend: [Vercel](https://admin-panel-ts26.vercel.app/) 
   - Backend: Xano 
 
 ## Requirements
