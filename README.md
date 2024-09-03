@@ -1,50 +1,43 @@
-# React + TypeScript + Vite
+# Admin Panel
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
 
-Currently, two official plugins are available:
+This project is an admin panel. It includes a login page, registration page, multi-step form with a progress indicator, and a submission table. The tech stack used includes ReactJS, NodeJS, ViteJS, Typescript, Tailwind CSS, and optionally Tailadmin.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **Login Page**: Allows users to log in with email field validation and appropriate messages for login success and failure.
+- **Registration Page**: Users can register with basic details and get redirected to the login page upon successful registration.
+- **Multi-Step Form**: A 3-step form with progress indicator:
+  - **Step 1**: Capture basic information (Name, Email, Phone number, Address).
+  - **Step 2**: Multi-file upload (Allow up to 3 files with valid types PNG and PDF).
+  - **Step 3**: Multi-field select dropdown.
+- **Submission Table**: View form submissions with search and filter options based on the date of submission.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Tech Stack
 
-- Configure the top-level `parserOptions` property like this:
+- **Frontend**: ReactJS, ViteJS, Typescript, Tailwind CSS 
+- **Backend**: Xano
+- **State Management**: Redux
+- **Deployment**: 
+  - Frontend: [Vercel](https://vercel.com/) 
+  - Backend: Xano 
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+## Requirements
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+- [x] Ensure field validation for forms is implemented.
+- [x] The web app must be responsive on all devices (Mobile, Tablet, Desktop).
+- [x] Both frontend and backend should be deployed.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+## Installation
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+To get started with this project:
+
+
+   ```bash
+   git clone https://github.com/your-username/admin-panel.git
+   cd admin-panel
+   npm install
+   npm run dev
+   ```
+   
