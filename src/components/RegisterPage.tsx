@@ -25,6 +25,7 @@ const RegisterPage: React.FC = () => {
       console.log("lower");
       navigate("/");
     } catch (error) {
+      console.log(error)
       setError("root", {
         message: "Password must contain atleast 1 number and 1 character",
       });

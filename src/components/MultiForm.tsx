@@ -7,7 +7,6 @@ import { z } from "zod";
 import NotificationBadge from "./NotificationBadge";
 import TableButton from "./TableButton";
 
-
 const step1Schema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),
@@ -34,7 +33,6 @@ const MultiForm: React.FC = () => {
   const {
     register,
     handleSubmit,
-    setError,
     formState: { errors },
   } = useForm<Step1Data>({
     resolver: zodResolver(step1Schema),
@@ -42,10 +40,6 @@ const MultiForm: React.FC = () => {
 
   const handleNext = handleSubmit(async () => {
     const userId = localStorage.getItem("user_id");
-    if (!userId) {
-      setError("User not logged in");
-      return;
-    }
 
     try {
       let payload = {};
@@ -64,7 +58,6 @@ const MultiForm: React.FC = () => {
         };
 
         if (!submissionId) {
-         
           const response = await apiClient.post("/submissions", payload, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -72,7 +65,6 @@ const MultiForm: React.FC = () => {
           });
           setSubmissionId(response.data.id);
         } else {
-         
           await apiClient.patch(`/submissions/${submissionId}`, payload, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -81,7 +73,6 @@ const MultiForm: React.FC = () => {
         }
         setStep(step + 1);
       } else if (step === 2 && submissionId) {
-       
         const existingSubmission = await apiClient.get(
           `/submissions/${submissionId}`,
           {
@@ -91,7 +82,6 @@ const MultiForm: React.FC = () => {
           }
         );
 
-       
         payload = {
           user_id: userId,
           step1_data: existingSubmission.data.step1_data, // Preserve step1_data
@@ -103,7 +93,6 @@ const MultiForm: React.FC = () => {
         });
         setStep(step + 1);
       } else if (step === 3 && submissionId) {
-       
         const existingSubmission = await apiClient.get(
           `/submissions/${submissionId}`,
           {
@@ -113,10 +102,9 @@ const MultiForm: React.FC = () => {
           }
         );
 
-        
         payload = {
           user_id: userId,
-          step1_data: existingSubmission.data.step1_data, 
+          step1_data: existingSubmission.data.step1_data,
           step2_files: existingSubmission.data.step2_files,
           step3_options: JSON.stringify(formData.options),
           submission_date: new Date().toISOString(),
@@ -143,7 +131,7 @@ const MultiForm: React.FC = () => {
         setStep(1);
       }
     } catch (err) {
-      setError("Submission failed", { message: "Invalid" });
+      console.log(err);
     }
   });
 
@@ -151,16 +139,14 @@ const MultiForm: React.FC = () => {
 
   return (
     <>
-      
       {showNotification && (
         <NotificationBadge
           message="Form successfully submitted! Fill Out a new form"
           onClose={() => setShowNotification(false)}
         />
       )}
-      <TableButton/>
+      <TableButton />
       <div className="flex justify-center items-center min-h-screen bg-gray-900">
-      
         <div className="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg">
           <div className="mb-6">
             <h2 className="text-3xl font-bold text-white text-center">
@@ -232,7 +218,7 @@ const MultiForm: React.FC = () => {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    files: Array.from(e.target.files),
+                    files: e.target.files ? Array.from(e.target.files) : [],
                   })
                 }
                 className="w-full p-3 mb-4 border border-gray-700 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -242,7 +228,6 @@ const MultiForm: React.FC = () => {
           {step === 3 && (
             <div>
               <select
-                
                 value={formData.options}
                 onChange={(e) =>
                   setFormData({
@@ -255,8 +240,6 @@ const MultiForm: React.FC = () => {
                 }
                 className="w-full p-3 mb-4 border border-gray-700 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-               
-                
                 <option>Male</option>
                 <option>Female</option>
                 <option>Other</option>
@@ -279,7 +262,6 @@ const MultiForm: React.FC = () => {
               {step === 3 ? "Submit" : "Next"}
             </button>
           </div>
-         
         </div>
       </div>
     </>

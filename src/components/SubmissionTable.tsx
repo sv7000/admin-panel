@@ -3,6 +3,7 @@ import apiClient from '../services/api-client';
 
 interface Submission {
   id: number;
+  user_id: string;
   created_at: string;
   step1_data: string;
   step2_files: string;
@@ -29,8 +30,9 @@ const SubmissionTable: React.FC = () => {
   
         // Filter submissions by user_id
         const userSubmissions = response.data.filter(
-          (submission: Submission) => submission.user_id === loggedInUserId
+          (submission: Submission) => submission.user_id === loggedInUserId.toString()
         );
+        
   
         setSubmissions(userSubmissions);
         setFilteredSubmissions(userSubmissions);

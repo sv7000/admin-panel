@@ -30,6 +30,7 @@ const LoginPage: React.FC = () => {
         navigate("/form");
       }, 2000); 
     } catch (error) {
+      console.log(error)
       setError("root", {
         message: "Invalid Credentials",
       });
