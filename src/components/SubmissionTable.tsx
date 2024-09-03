@@ -30,7 +30,7 @@ const SubmissionTable: React.FC = () => {
   
         // Filter submissions by user_id
         const userSubmissions = response.data.filter(
-          (submission: Submission) => submission.user_id === loggedInUserId.toString()
+          (submission: Submission) => parseInt(submission.user_id) === loggedInUserId
         );
         
   
