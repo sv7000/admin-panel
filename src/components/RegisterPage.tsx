@@ -1,18 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import apiClient from "../services/api-client";
 import { SubmitHandler, FieldValues } from "react-hook-form";
 import useRegister from "../hooks/useRegister";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-interface FormData{
-  name: string,
-  email: string,
-  password: string
+interface FormData {
+  name: string;
+  email: string;
+  password: string;
 }
 
 const RegisterPage: React.FC = () => {
-  const { register, handleSubmit, errors, isSubmitting, setError } = useRegister();
+  const { register, handleSubmit, errors, isSubmitting, setError } =
+    useRegister();
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit: SubmitHandler<FormData> = async (data: FieldValues) => {
     const { name, email, password } = data;
@@ -55,17 +58,26 @@ const RegisterPage: React.FC = () => {
             <p className="mt-2 text-sm text-red-500">{errors.email?.message}</p>
           )}
 
-          <input
-            {...register("password")}
-            type="password"
-            placeholder="Password"
-            className="w-full p-3 mb-4 border border-gray-700 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          {errors.password && (
-            <p className="mt-2 text-sm text-red-500">
-              {errors.password?.message}
-            </p>
-          )}
+          <div className="relative mb-4">
+            <input
+              {...register("password")}
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              className="w-full p-3 pr-10 border border-gray-700 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 p-3 text-gray-400 hover:text-white"
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
+            {errors.password && (
+              <p className="mt-2 text-sm text-red-500">
+                {errors.password?.message}
+              </p>
+            )}
+          </div>
 
           <button
             type="submit"

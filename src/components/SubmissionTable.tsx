@@ -49,7 +49,7 @@ const SubmissionTable: React.FC = () => {
   const filterSubmissions = () => {
     let filtered = submissions;
 
-    // Filter by search query
+   
     if (searchQuery) {
       filtered = filtered.filter(submission =>
         submission.step1_data.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,7 +58,7 @@ const SubmissionTable: React.FC = () => {
       );
     }
 
-    // Filter by date range
+   
     if (startDate && endDate) {
       filtered = filtered.filter(submission => {
         const submissionDate = new Date(submission.submission_date).getTime();

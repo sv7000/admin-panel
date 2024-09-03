@@ -1,13 +1,27 @@
 import React, { useState } from "react";
 import apiClient from "../services/api-client";
 import ProgressBar from "./ProgressBar";
-import { useForm } from 'react-hook-form';
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {z} from 'zod'
+import { z } from "zod";
+import NotificationBadge from "./NotificationBadge";
+import TableButton from "./TableButton";
+
+
+const step1Schema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
+  address: z.string().min(1, "Address is required"),
+});
+
+type Step1Data = z.infer<typeof step1Schema>;
 
 const MultiForm: React.FC = () => {
   const [step, setStep] = useState<number>(1);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [showNotification, setShowNotification] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -16,18 +30,17 @@ const MultiForm: React.FC = () => {
     files: [] as File[],
     options: [] as string[],
   });
-  // const {
-  //   register,
-  //   handleSubmit,
-  //   setError,
-  //   formState: { errors, isSubmitting },
-  // } = useForm<FormData>({
-  //     resolver: zodResolver(schema),
-  //    });
 
-  const [error, setError] = useState("");
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<Step1Data>({
+    resolver: zodResolver(step1Schema),
+  });
 
-  const handleNext = async () => {
+  const handleNext = handleSubmit(async () => {
     const userId = localStorage.getItem("user_id");
     if (!userId) {
       setError("User not logged in");
@@ -51,7 +64,7 @@ const MultiForm: React.FC = () => {
         };
 
         if (!submissionId) {
-          // Create a new submission
+         
           const response = await apiClient.post("/submissions", payload, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -59,7 +72,7 @@ const MultiForm: React.FC = () => {
           });
           setSubmissionId(response.data.id);
         } else {
-          // Update the existing submission
+         
           await apiClient.patch(`/submissions/${submissionId}`, payload, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -68,7 +81,7 @@ const MultiForm: React.FC = () => {
         }
         setStep(step + 1);
       } else if (step === 2 && submissionId) {
-        // Retrieve existing step1_data
+       
         const existingSubmission = await apiClient.get(
           `/submissions/${submissionId}`,
           {
@@ -78,7 +91,7 @@ const MultiForm: React.FC = () => {
           }
         );
 
-        // Save Step 2 data
+       
         payload = {
           user_id: userId,
           step1_data: existingSubmission.data.step1_data, // Preserve step1_data
@@ -90,7 +103,7 @@ const MultiForm: React.FC = () => {
         });
         setStep(step + 1);
       } else if (step === 3 && submissionId) {
-        // Retrieve existing step1_data and step2_files
+       
         const existingSubmission = await apiClient.get(
           `/submissions/${submissionId}`,
           {
@@ -100,11 +113,11 @@ const MultiForm: React.FC = () => {
           }
         );
 
-        // Save Step 3 data and mark submission as complete
+        
         payload = {
           user_id: userId,
-          step1_data: existingSubmission.data.step1_data, // Preserve step1_data
-          step2_files: existingSubmission.data.step2_files, // Preserve step2_files
+          step1_data: existingSubmission.data.step1_data, 
+          step2_files: existingSubmission.data.step2_files,
           step3_options: JSON.stringify(formData.options),
           submission_date: new Date().toISOString(),
           status: "complete",
@@ -113,111 +126,163 @@ const MultiForm: React.FC = () => {
         await apiClient.patch(`/submissions/${submissionId}`, payload, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
+
+        setShowNotification(true);
+        setTimeout(() => {
+          setShowNotification(false);
+        }, 3000);
+        setFormData({
+          name: "",
+          email: "",
+          phoneNumber: "",
+          address: "",
+          files: [] as File[],
+          options: [] as string[],
+        });
+        setSubmissionId(null);
+        setStep(1);
       }
     } catch (err) {
-      setError("Submission failed");
+      setError("Submission failed", { message: "Invalid" });
     }
-  };
+  });
 
   const handlePrevious = () => setStep(step - 1);
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="mb-4">
-        <h2 className="text-2xl font-bold">Step {step} of 3</h2>
-        <ProgressBar currentStep={step} totalSteps={3} />
+    <>
+      
+      {showNotification && (
+        <NotificationBadge
+          message="Form successfully submitted! Fill Out a new form"
+          onClose={() => setShowNotification(false)}
+        />
+      )}
+      <TableButton/>
+      <div className="flex justify-center items-center min-h-screen bg-gray-900">
+      
+        <div className="w-full max-w-lg bg-gray-800 p-8 rounded-lg shadow-lg">
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold text-white text-center">
+              Step {step} of 3
+            </h2>
+            <ProgressBar currentStep={step} totalSteps={3} />
+          </div>
+          {step === 1 && (
+            <form>
+              <input
+                type="text"
+                placeholder="Name"
+                {...register("name")}
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                className="w-full p-3 mb-4 border border-gray-700 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.name && (
+                <p className="text-red-500">{errors.name.message}</p>
+              )}
+              <input
+                type="email"
+                placeholder="Email"
+                {...register("email")}
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="w-full p-3 mb-4 border border-gray-700 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.email && (
+                <p className="text-red-500">{errors.email.message}</p>
+              )}
+              <input
+                type="tel"
+                placeholder="Phone Number"
+                {...register("phoneNumber")}
+                value={formData.phoneNumber}
+                onChange={(e) =>
+                  setFormData({ ...formData, phoneNumber: e.target.value })
+                }
+                className="w-full p-3 mb-4 border border-gray-700 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.phoneNumber && (
+                <p className="text-red-500">{errors.phoneNumber.message}</p>
+              )}
+              <input
+                type="text"
+                placeholder="Address"
+                {...register("address")}
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                className="w-full p-3 mb-4 border border-gray-700 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.address && (
+                <p className="text-red-500">{errors.address.message}</p>
+              )}
+            </form>
+          )}
+          {step === 2 && (
+            <div>
+              <input
+                type="file"
+                multiple
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    files: Array.from(e.target.files),
+                  })
+                }
+                className="w-full p-3 mb-4 border border-gray-700 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
+          {step === 3 && (
+            <div>
+              <select
+                
+                value={formData.options}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    options: Array.from(
+                      e.target.selectedOptions,
+                      (option) => option.value
+                    ),
+                  })
+                }
+                className="w-full p-3 mb-4 border border-gray-700 rounded bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+               
+                
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+              </select>
+            </div>
+          )}
+          <div className="flex justify-between">
+            {step > 1 && (
+              <button
+                onClick={handlePrevious}
+                className="bg-gray-600 text-white p-3 rounded hover:bg-gray-500"
+              >
+                Previous
+              </button>
+            )}
+            <button
+              onClick={handleNext}
+              className="bg-blue-500 text-white p-3 rounded hover:bg-blue-600"
+            >
+              {step === 3 ? "Submit" : "Next"}
+            </button>
+          </div>
+         
+        </div>
       </div>
-      {step === 1 && (
-        <div>
-          <input
-            type="text"
-            placeholder="Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full p-2 mb-4 border rounded"
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            className="w-full p-2 mb-4 border rounded"
-          />
-          <input
-            type="tel"
-            placeholder="Phone Number"
-            value={formData.phoneNumber}
-            onChange={(e) =>
-              setFormData({ ...formData, phoneNumber: e.target.value })
-            }
-            className="w-full p-2 mb-4 border rounded"
-          />
-          <input
-            type="text"
-            placeholder="Address"
-            value={formData.address}
-            onChange={(e) =>
-              setFormData({ ...formData, address: e.target.value })
-            }
-            className="w-full p-2 mb-4 border rounded"
-          />
-        </div>
-      )}
-      {step === 2 && (
-        <div>
-          <input
-            type="file"
-            multiple
-            onChange={(e) =>
-              setFormData({ ...formData, files: Array.from(e.target.files) })
-            }
-            className="w-full p-2 mb-4 border rounded"
-          />
-        </div>
-      )}
-      {step === 3 && (
-        <div>
-          <select
-            multiple
-            value={formData.options}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                options: Array.from(
-                  e.target.selectedOptions,
-                  (option) => option.value
-                ),
-              })
-            }
-            className="w-full p-2 mb-4 border rounded"
-          >
-            Gender
-            <option>Male</option>
-            <option>Female</option>
-            <option>Other</option>
-          </select>
-        </div>
-      )}
-      <div className="flex justify-between">
-        {step > 1 && (
-          <button
-            onClick={handlePrevious}
-            className="bg-gray-500 text-white p-2 rounded"
-          >
-            Previous
-          </button>
-        )}
-        <button
-          onClick={handleNext}
-          className="bg-blue-500 text-white p-2 rounded"
-        >
-          {step === 3 ? "Submit" : "Next"}
-        </button>
-      </div>
-      {error && <div className="text-red-500 mt-2">{error}</div>}
-    </div>
+    </>
   );
 };
 
